@@ -1,9 +1,9 @@
 from langchain_core.tools import tool
 import ast
 
-def query(request_query: str):
+def query(request_query: str, is_include_cols=True):
     """Execute SQL with column headers."""
-    return db.run(request_query, include_columns=True)
+    return db.run(request_query, include_columns=is_include_cols)
 
 
 @tool
@@ -37,17 +37,23 @@ def get_tracks_by_artist(artist: str):
 def get_songs_by_genre(genre: str):
     """Return up to 8 songs for a genre, grouped by artist."""
 
-    # Get matching genre IDs
+    # Getting the genre ids that match the requested genre
     genre_id_query = f"SELECT GenreId FROM Genre WHERE Name LIKE '%{genre}%'"
     raw_ids = db.run(genre_id_query)
 
     if not raw_ids:
         return f"No songs found for genre: {genre}"
-
+	
+    # Parsing sql queries to form list of dictioaries that stores all the dict returned from sql query
     genre_ids = ast.literal_eval(raw_ids)
-    id_list = ", ".join(str(row[0]) for row in genre_ids)
+	id_values = []
+	for row in genre_ids:
+        genre_id = row[0]  # extract the GenreId from the tuple
+        id_values.append(str(genre_id))
 
-    # Query songs with those genre IDs
+	id_list = ", ".join(id_values)
+
+    # Query songs with those genre IDs.
     request_query = f"""
         SELECT Track.Name AS Song, Artist.Name AS Artist
         FROM Track
