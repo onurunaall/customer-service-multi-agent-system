@@ -34,3 +34,9 @@ def get_engine_for_chinook_db():
     )
 
     return engine
+
+# Initialize the SQLAlchemy engine for the Chinook database
+engine = get_engine_for_chinook_db()
+
+# Create a LangChain SQLDatabase utility instance from the engine.
+db = SQLDatabase(engine)
